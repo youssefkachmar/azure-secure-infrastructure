@@ -2,8 +2,7 @@
 
 A centralized, security-focused Azure lab deployed on Microsoft Azure. The design uses a **pfSense NVA (hub gateway)** to centralize routing and security controls, publish a web application through a reverse proxy, provide remote administrative access over VPN, and add observability with monitoring + SIEM.
 
-Public website (published through the lab):
-- **https://pfeproject.live**
+> **Note:** This lab was hosted under an Azure subscription that may be **disabled/offline**, so the public endpoint/domain may not be reachable at all times. Screenshots in this repo serve as the verification evidence.
 
 ---
 
@@ -86,15 +85,21 @@ Public website (published through the lab):
 
 ## 5) Web Publishing (HAProxy → Nginx) over HTTPS
 
+The web server is published behind pfSense using HAProxy. During the project, the service was exposed via a public HTTPS domain (shown in the evidence screenshots). The endpoint may be offline now due to subscription status.
+
 **08 — HAProxy stats page (frontends/backends health and traffic visibility).**  
 ![08-haproxy-stats](docs/screenshots/08-haproxy-stats.png)
 
-**19 — Public website reachable via HTTPS domain `pfeproject.live` (published service proof).**  
+**19 — Website reachable via HTTPS domain (publishing proof in screenshot).**  
 ![19-webserver-domain](docs/screenshots/19-webserver-domain.png)
 
 ---
 
 ## 6) VoIP (Asterisk) + NAT (SIP/RTP)
+
+VoIP service (Asterisk PBX) is reachable from outside through pfSense using:
+- **SIP UDP 5060**
+- **RTP UDP 10000–20000**
 
 **09 — Zoiper softphone ringing (call flow proof).**  
 ![09-voip-ringing-zoiper](docs/screenshots/09-voip-ringing-zoiper.png)
