@@ -1,48 +1,43 @@
 # Azure Secure Infrastructure (pfSense Hub Gateway)
 
-A centralized, security-focused Azure lab deployed on Microsoft Azure. The design uses a **pfSense NVA (hub gateway)** to centralize routing and security controls, publish a web application through a reverse proxy, provide remote administrative access over VPN, and add observability with monitoring + SIEM.
+A centralized, security-focused Azure lab built around a **pfSense network virtual appliance (hub gateway)** to enforce routing and segmentation, publish internal services securely, and provide monitoring + security visibility.
 
-> **Availability note:** This lab was hosted under an Azure subscription that may be **disabled/offline**, so any public endpoints (domain/IP) may not be reachable anymore. The screenshots in this repository are the verification evidence.
-
----
-
-## 1) High-level Goals
-
-- **Centralized routing & segmentation:** Multiple subnets inside one Azure VNet, with traffic forced through pfSense using UDRs.
-- **Secure remote admin:** OpenVPN remote access into the management network.
-- **Service publishing:** HAProxy on pfSense publishing an internal Nginx web server over HTTPS.
-- **Enterprise services demo:** VoIP (Asterisk PBX) accessible via SIP/RTP with correct NAT behavior.
-- **Visibility & detection:** Zabbix monitoring and Wazuh SIEM dashboards, with Suricata IDS alerts for suspicious activity.
+> **Availability note:** The original Azure subscription used for this lab may be disabled/offline, so any previously public endpoints may not be reachable today. The screenshots in this repository are the validation evidence.
 
 ---
 
-## 2) Services & IP Plan
+## High-level Goals
 
-### Azure VNet
-- **VNet:** `10.0.0.0/16`
+- Centralized routing and segmentation using **UDR/route tables**
+- **pfSense** as the hub gateway (firewall/NAT/VPN/reverse proxy)
+- Remote administration through **OpenVPN**
+- HTTPS publishing through **HAProxy → Nginx**
+- VoIP (Asterisk) reachable through NAT (SIP/RTP)
+- Visibility through **Suricata (IDS)**, **Wazuh (SIEM)**, and **Zabbix (monitoring)**
 
-### Subnets / Workloads
+---
+
+## Services & IP Plan (Lab)
+
+- **Azure VNet:** `10.0.0.0/16`
 
 | Subnet | CIDR | Workload(s) | Example IP(s) | Purpose |
 |---|---:|---|---|---|
-| DCSubnet | `10.0.2.0/24` | `vm-dc` (Windows Server) | `10.0.2.10` | AD DS / DNS |
-| VoIPSubnet | `10.0.3.0/24` | `vm-voip` (Asterisk) | `10.0.3.4` | SIP / RTP PBX |
-| ClientSubnet | `10.0.4.0/24` | `vm-client` (Windows 10) | `10.0.4.4` | Domain-joined client / testing |
-| WebSubnet | `10.0.5.0/24` | `vm-web` (Nginx) | `10.0.5.10` | Internal web service behind HAProxy |
-| Management | `10.0.6.0/24` | Jumpbox, Zabbix, Wazuh | `10.0.6.5`, `10.0.6.6`, `10.0.6.7` | Operations / monitoring / SIEM |
+| DCSubnet | `10.0.2.0/24` | Windows Server (AD DS/DNS) | `10.0.2.10` | Identity + DNS |
+| VoIPSubnet | `10.0.3.0/24` | Asterisk PBX | `10.0.3.4` | SIP/RTP services |
+| ClientSubnet | `10.0.4.0/24` | Windows client | `10.0.4.4` | Testing / domain client |
+| WebSubnet | `10.0.5.0/24` | Nginx web server | `10.0.5.10` | Internal web app behind HAProxy |
+| Management | `10.0.6.0/24` | Zabbix + Wazuh + admin access | `10.0.6.5–7` | Ops / monitoring / SIEM |
 
-### Hub Gateway (pfSense NVA)
-- **pfSense (Hub Gateway/NVA):**
-  - WAN IP: `10.0.1.4`
-  - LAN IP: `10.0.6.4`
-  - Roles: **Firewall, NAT, VPN, Reverse Proxy**
+**pfSense hub gateway (NVA):**
+- WAN: `10.0.1.4` (Azure DHCP)
+- LAN: `10.0.6.4`
 
-### Remote Admin Access
-- **OpenVPN tunnel network:** `10.200.0.0/24` (remote admin PC obtains an IP in this range)
+**OpenVPN tunnel network:** `10.200.0.0/24`
 
 ---
 
-## 3) Evidence Screenshots (detailed descriptions)
+## Evidence Screenshots (with descriptions)
 
 > All screenshots are stored in: `docs/screenshots/`
 
@@ -50,11 +45,10 @@ A centralized, security-focused Azure lab deployed on Microsoft Azure. The desig
 
 ### 01 — Topology (VNet + subnets + roles)
 
-This diagram summarizes the entire architecture:
-- The Azure VNet (`10.0.0.0/16`) and the main subnets.
-- The **pfSense NVA** acting as a centralized hub gateway (FW/NAT/VPN).
-- The main workloads (AD/DNS, VoIP PBX, Web server, management stack).
-- The remote admin path using **OpenVPN**.
+This diagram summarizes the complete architecture:
+- Azure VNet (`10.0.0.0/16`) and the main subnets.
+- pfSense acting as the central hub gateway for routing/security.
+- Core workloads (AD/DNS, VoIP, web server, management/monitoring).
 
 ![01-topology](docs/screenshots/01-topology.png)
 
@@ -62,9 +56,9 @@ This diagram summarizes the entire architecture:
 
 ### 02 — Azure Route Table (UDR)
 
-This screenshot is the proof of centralized routing in Azure:
-- A route table (UDR) is configured to steer subnet traffic through the pfSense NVA.
-- This is what enables hub-and-spoke behavior and forces inspection/NAT/firewall policy to happen at pfSense.
+Proof of centralized routing enforcement in Azure:
+- UDR/route table configuration to steer traffic via the pfSense NVA.
+- Enables hub-and-spoke behavior and central policy enforcement.
 
 ![02-route-table](docs/screenshots/02-route-table.png)
 
@@ -72,184 +66,179 @@ This screenshot is the proof of centralized routing in Azure:
 
 ### 03 — pfSense Dashboard (Gateway operational)
 
-pfSense system dashboard confirming:
-- The firewall/NVA VM is up and running.
-- Interfaces/services are active (gateway role).
-- This is the main control plane for NAT, VPN, HAProxy, and security services.
+pfSense dashboard confirming the gateway is online and servicing the lab:
+- Central point for firewall rules, NAT, VPN, HAProxy and visibility tooling.
+- Used as operational proof of the hub gateway.
 
 ![03-pfsense-dashboard](docs/screenshots/03-pfsense-dashboard.png)
 
 ---
 
-## 4) Remote Access VPN (OpenVPN)
+## Remote Access VPN (OpenVPN)
 
-### 04 — OpenVPN client connected (remote admin)
+### 04 — OpenVPN client connected
 
-This screenshot demonstrates successful remote access:
-- The OpenVPN client establishes the tunnel to pfSense.
-- Remote administration is done through the VPN rather than exposing internal management ports publicly.
+Client-side proof of remote access:
+- OpenVPN tunnel successfully established to pfSense.
+- Used to access internal subnets without exposing management ports publicly.
 
 ![04-openvpn-client-connected](docs/screenshots/04-openvpn-client-connected.png)
 
-### 05 — pfSense OpenVPN status (active tunnel session)
+### 05 — pfSense OpenVPN status (active session)
 
-pfSense shows the VPN session from the server side:
-- Confirms that a client is connected.
-- Displays the assigned tunnel/virtual address and session activity.
-- Serves as authoritative proof that the VPN is working.
+Server-side proof of the same VPN connection:
+- Shows an active OpenVPN session.
+- Confirms tunnel addressing and session activity from pfSense.
 
 ![05-openvpn-status](docs/screenshots/05-openvpn-status.png)
 
 ### 06 — OpenVPN Certificate Authority (CA)
 
-Proof of certificate-based authentication:
-- A Certificate Authority is configured on pfSense.
-- The CA is used to issue client certificates, improving security over password-only access.
+Certificate-based authentication evidence:
+- A CA is configured on pfSense to issue client certificates.
+- Provides stronger authentication than password-only access.
 
 ![06-openvpn-ca](docs/screenshots/06-openvpn-ca.png)
 
 ### 07 — OpenVPN user certificate
 
-Proof of a user/client certificate being created:
-- Shows certificate management for a VPN user.
-- Demonstrates a proper PKI-based setup for OpenVPN access control.
+Client identity/certificate evidence:
+- Shows a user/client certificate created for VPN authentication.
+- Demonstrates PKI usage and per-user access control.
 
 ![07-openvpn-user-certificate](docs/screenshots/07-openvpn-user-certificate.png)
 
 ---
 
-## 5) Web Publishing (HAProxy → Nginx) over HTTPS
+## Web Publishing (HAProxy → Nginx) over HTTPS
 
 ### 08 — HAProxy stats (reverse proxy evidence)
 
-HAProxy statistics page proving:
-- HAProxy is running on pfSense.
-- Backends/frontends are configured and passing traffic.
-- Useful for visibility (health checks, sessions, traffic counters).
+Operational proof of the reverse proxy:
+- Frontend/backend visibility and health checks in HAProxy.
+- Confirms HTTPS publishing pipeline via pfSense.
 
 ![08-haproxy-stats](docs/screenshots/08-haproxy-stats.png)
 
-### 19 — Web server reachable via HTTPS domain (evidence)
+### 19 — Web server reachable via HTTPS domain (historical evidence)
 
-Proof that the web application was successfully published:
-- Browser loads the site using a public domain and HTTPS.
-- This validates the full chain: **Internet → pfSense/HAProxy → internal Nginx web server**.
+Publishing proof from the client side:
+- Browser shows the site reachable via HTTPS using a public domain during the project.
+- Validates the chain: Internet → pfSense/HAProxy → internal Nginx.
 
-> The domain may be offline now due to subscription status; this screenshot is the historical proof.
+> The domain may be offline today due to subscription status; the screenshot is the evidence.
 
 ![19-webserver-domain](docs/screenshots/19-webserver-domain.png)
 
 ---
 
-## 6) VoIP (Asterisk) + NAT (SIP/RTP)
+## VoIP (Asterisk) + NAT (SIP/RTP)
 
-### 09 — Zoiper ringing (call flow)
+### 09 — Zoiper ringing (call setup)
 
-Demonstrates VoIP call setup:
-- The softphone receives/rings, indicating SIP signaling is working end-to-end.
-- Confirms reachability to the PBX through the network/security layers.
+VoIP call flow validation:
+- Ringing state indicates SIP signaling is reaching the endpoint.
+- Confirms reachability through routing + firewall/NAT controls.
 
 ![09-voip-ringing-zoiper](docs/screenshots/09-voip-ringing-zoiper.png)
 
-### 10 — Zoiper incoming call (active signaling)
+### 10 — Zoiper incoming call
 
 Additional VoIP validation:
-- Shows the incoming call screen, confirming successful SIP negotiation.
-- Used as evidence that external-to-internal VoIP connectivity is functional.
+- Incoming call screen confirms successful SIP negotiation.
+- Used as proof of end-to-end VoIP connectivity.
 
 ![10-voip-incoming-zoiper](docs/screenshots/10-voip-incoming-zoiper.png)
 
-### 11 — NAT Port Forward rules (SIP + RTP → Asterisk)
+### 11 — NAT Port Forward rules (SIP + RTP)
 
-pfSense NAT configuration proving:
-- **SIP UDP 5060** forwarded to the Asterisk server.
-- **RTP UDP 10000–20000** forwarded to the Asterisk server.
-- Ensures VoIP signaling and audio media can traverse NAT properly.
+pfSense inbound NAT evidence:
+- SIP UDP 5060 forwarded to the Asterisk server.
+- RTP UDP range forwarded to support voice media streams.
 
 ![11-nat-port-forward-voip](docs/screenshots/11-nat-port-forward-voip.png)
 
-### 12 — Outbound NAT with static-port (VoIP stability)
+### 12 — Outbound NAT with static-port (RTP stability)
 
-Outbound NAT proof showing `static-port` enabled:
-- Static port NAT helps avoid RTP audio issues caused by port rewriting.
-- This is a common best practice for VoIP behind NAT.
+Outbound NAT tuning for VoIP:
+- Static-port helps prevent RTP issues caused by port rewriting.
+- Common requirement for stable audio through NAT.
 
 ![12-outbound-nat-static-port](docs/screenshots/12-outbound-nat-static-port.png)
 
 ---
 
-## 7) IDS (Suricata)
+## IDS (Suricata)
 
-Suricata is documented primarily as **IDS (detection)** in this lab:
-- It inspects traffic and produces alerts for suspicious patterns (e.g., scans).
-- Blocking can be applied via firewall rules depending on policy, but IPS inline mode is not assumed unless explicitly configured.
+Suricata is used primarily for IDS-style inspection:
+- Detects suspicious traffic patterns (scans/recon) and generates alerts.
+- Blocking/containment is handled through pfSense policy as needed.
 
 ### 13 — Detection example (Nmap-style scan)
 
-Evidence of reconnaissance detection:
+Reconnaissance detection evidence:
 - Suricata flags scan-like behavior consistent with Nmap probing.
-- Demonstrates that inspection rules are active and generating useful events.
+- Demonstrates that inspection rules are active.
 
 ![13-suricata-nmap-attack](docs/screenshots/13-suricata-nmap-attack.png)
 
 ### 14 — Suricata alerts view
 
-Operational evidence of IDS:
-- Shows the alerts interface with detected events.
-- Used to prove real-time visibility into suspicious traffic.
+Operational IDS evidence:
+- Shows the alert view with triggered events.
+- Used to validate visibility into suspicious traffic.
 
 ![14-suricata-alerts](docs/screenshots/14-suricata-alerts.png)
 
 ### 15 — Blocked host evidence
 
-Demonstrates response/containment:
-- Shows an IP block entry / blocked host evidence in pfSense context.
-- Represents mitigation after detection (policy enforcement).
+Response/containment evidence:
+- Shows a blocked host/IP entry in pfSense context.
+- Demonstrates mitigation following detection.
 
 ![15-suricata-ip-block](docs/screenshots/15-suricata-ip-block.png)
 
 ---
 
-## 8) Monitoring (Zabbix)
+## Monitoring (Zabbix)
 
-### 16 — Zabbix dashboard (observability)
+### 16 — Zabbix dashboard
 
-Proof that monitoring is deployed:
-- Shows Zabbix dashboard overview of monitored components.
-- Confirms availability/performance visibility for the infrastructure.
+Monitoring evidence:
+- Confirms infrastructure/service visibility through Zabbix dashboards.
+- Used to validate availability/performance monitoring.
 
 ![16-zabbix-dashboard](docs/screenshots/16-zabbix-dashboard.png)
 
 ---
 
-## 9) SIEM (Wazuh)
+## SIEM (Wazuh)
 
-### 17 — Wazuh dashboard (security visibility)
+### 17 — Wazuh dashboard
 
-Proof that SIEM is in place:
-- Shows Wazuh dashboard with security monitoring panels.
-- Used as evidence of centralized log/security analytics.
+SIEM visibility evidence:
+- Dashboard view showing security monitoring panels.
+- Validates centralized security visibility.
 
 ![17-wazuh-dashboard](docs/screenshots/17-wazuh-dashboard.png)
 
 ### 18 — Wazuh hosts/agents inventory
 
-Evidence of endpoint coverage:
-- Shows Wazuh hosts/agents reporting to the manager.
-- Demonstrates that endpoints are enrolled and visible in SIEM.
+Endpoint coverage evidence:
+- Shows hosts/agents reporting to Wazuh.
+- Confirms agents are enrolled and visible centrally.
 
 ![18-wazuh-hosts](docs/screenshots/18-wazuh-hosts.png)
 
 ---
 
-## 10) Repository Structure
+## Artifacts
 
-- `docs/screenshots/` — evidence screenshots referenced by this README
+- Web page served by the internal web server: [`web/index.html`](web/index.html)
+- pfSense configuration export: [`configs/pfSense full config.xml`](configs/pfSense%20full%20config.xml)
 
 ---
 
-## 11) Notes (Public Repo)
+## Tech Stack
 
-- Screenshots include **private RFC1918 IPs** used in the lab design.
-- If you reproduce this lab, use your own domain/certificates and follow secure credential handling (do not commit secrets).
-- Suricata is referenced as **IDS** unless explicitly configured in inline IPS mode.
+Azure • pfSense • OpenVPN • HAProxy • Nginx • Asterisk • Suricata • Wazuh • Zabbix • Windows Server (AD/DNS)
