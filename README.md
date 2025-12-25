@@ -27,7 +27,7 @@ A centralized, security-focused Azure lab built around a **pfSense network virtu
 | VoIPSubnet | `10.0.3.0/24` | Asterisk PBX | `10.0.3.4` | SIP/RTP services |
 | ClientSubnet | `10.0.4.0/24` | Windows client | `10.0.4.4` | Testing / domain client |
 | WebSubnet | `10.0.5.0/24` | Nginx web server | `10.0.5.10` | Internal web app behind HAProxy |
-| Management | `10.0.6.0/24` | Zabbix + Wazuh + admin access | `10.0.6.5–7` | Ops / monitoring / SIEM |
+| Management | `10.0.6.0/24` | Zabbix + Wazuh + admin access | `10.0.6.5,10.0.6.6,10.0.6.7` | Ops / monitoring / SIEM |
 
 **pfSense hub gateway (NVA):**
 - WAN: `10.0.1.4` (Azure DHCP)
