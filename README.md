@@ -74,6 +74,42 @@ pfSense dashboard confirming the gateway is online and servicing the lab:
 
 ---
 
+## Identity (Active Directory + DNS)
+
+### 20 — Domain Controller roles (AD DS + DNS)
+
+Server Manager dashboard showing the domain controller services:
+- AD DS and DNS roles are installed and managed on the Windows Server.
+- This provides centralized identity (domain) and name resolution for the lab.
+
+![20-dc-server-manager-ad-dns](docs/screenshots/20-dc-server-manager-ad-dns.png)
+
+### 21 — Active Directory Users and Computers (domain join proof)
+
+ADUC view of the `pfe.local` domain:
+- Shows computer objects, including `vm-client`.
+- Confirms the client is joined to the domain and tracked in Active Directory.
+
+![21-aduc-domain-computers](docs/screenshots/21-aduc-domain-computers.png)
+
+### 22 — DNS forwarders configuration
+
+DNS server forwarders configured on the domain controller:
+- Forwards unknown queries to external resolvers (Azure resolver + public DNS).
+- Supports reliable external name resolution from inside the lab.
+
+![22-dns-forwarders](docs/screenshots/22-dns-forwarders.png)
+
+### 23 — Client DNS/domain configuration (`ipconfig /all`)
+
+Client-side proof of domain/DNS settings:
+- Primary DNS suffix is `pfe.local`.
+- DNS server points to the domain controller (`10.0.2.10`).
+
+![23-client-ipconfig-domain-dns](docs/screenshots/23-client-ipconfig-domain-dns.png)
+
+---
+
 ## Remote Access VPN (OpenVPN)
 
 ### 04 — OpenVPN client connected
