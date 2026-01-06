@@ -6,7 +6,7 @@ A centralized, security-focused Azure lab built around a **pfSense network virtu
 
 ---
 
-## High-level Goals
+## 1 — High-level Goals
 
 - Centralized routing and segmentation using **UDR/route tables**
 - **pfSense** as the hub gateway (firewall/NAT/VPN/reverse proxy)
@@ -17,7 +17,7 @@ A centralized, security-focused Azure lab built around a **pfSense network virtu
 
 ---
 
-## Services & IP Plan (Lab)
+## 2 — Services & IP Plan (Lab)
 
 - **Azure VNet:** `10.0.0.0/16`
 
@@ -37,15 +37,15 @@ A centralized, security-focused Azure lab built around a **pfSense network virtu
 
 ---
 
-## Evidence Screenshots (with descriptions)
+## 3 — Evidence Screenshots (with descriptions)
 
 > All screenshots are stored in: `docs/screenshots/`
 
 ---
 
-# Architecture & Routing
+## 4 — Architecture & Routing
 
-### A1 — Topology (VNet + subnets + roles)
+### 1 — Topology (VNet + subnets + roles)
 
 This diagram summarizes the complete architecture:
 - Azure VNet (`10.0.0.0/16`) and the main subnets.
@@ -56,7 +56,7 @@ This diagram summarizes the complete architecture:
 
 ---
 
-### A2 — Azure Route Table (UDR)
+### 2 — Azure Route Table (UDR)
 
 Proof of centralized routing enforcement in Azure:
 - UDR/route table configuration to steer traffic via the pfSense NVA.
@@ -66,7 +66,7 @@ Proof of centralized routing enforcement in Azure:
 
 ---
 
-### A3 — pfSense Dashboard (Gateway operational)
+### 3 — pfSense Dashboard (Gateway operational)
 
 pfSense dashboard confirming the gateway is online and servicing the lab:
 - Central point for firewall rules, NAT, VPN, HAProxy and visibility tooling.
@@ -76,9 +76,9 @@ pfSense dashboard confirming the gateway is online and servicing the lab:
 
 ---
 
-# Identity (Active Directory + DNS)
+## 5 — Identity (Active Directory + DNS)
 
-### I1 — Domain Controller roles (AD DS + DNS)
+### 1 — Domain Controller roles (AD DS + DNS)
 
 Server Manager dashboard showing the domain controller services:
 - AD DS and DNS roles are installed and managed on the Windows Server.
@@ -88,7 +88,7 @@ Server Manager dashboard showing the domain controller services:
 
 ---
 
-### I2 — Active Directory Users and Computers (domain join proof)
+### 2 — Active Directory Users and Computers (domain join proof)
 
 ADUC view of the `pfe.local` domain:
 - Shows computer objects, including `vm-client`.
@@ -98,7 +98,7 @@ ADUC view of the `pfe.local` domain:
 
 ---
 
-### I3 — DNS forwarders configuration
+### 3 — DNS forwarders configuration
 
 DNS server forwarders configured on the domain controller:
 - Forwards unknown queries to external resolvers (Azure resolver + public DNS).
@@ -108,7 +108,7 @@ DNS server forwarders configured on the domain controller:
 
 ---
 
-### I4 — Client DNS/domain configuration (`ipconfig /all`)
+### 4 — Client DNS/domain configuration (`ipconfig /all`)
 
 Client-side proof of domain/DNS settings:
 - Primary DNS suffix is `pfe.local`.
@@ -118,9 +118,9 @@ Client-side proof of domain/DNS settings:
 
 ---
 
-# Remote Access VPN (OpenVPN)
+## 6 — Remote Access VPN (OpenVPN)
 
-### V1 — OpenVPN client connected
+### 1 — OpenVPN client connected
 
 Client-side proof of remote access:
 - OpenVPN tunnel successfully established to pfSense.
@@ -130,7 +130,7 @@ Client-side proof of remote access:
 
 ---
 
-### V2 — pfSense OpenVPN status (active session)
+### 2 — pfSense OpenVPN status (active session)
 
 Server-side proof of the same VPN connection:
 - Shows an active OpenVPN session.
@@ -140,7 +140,7 @@ Server-side proof of the same VPN connection:
 
 ---
 
-### V3 — OpenVPN Certificate Authority (CA)
+### 3 — OpenVPN Certificate Authority (CA)
 
 Certificate-based authentication evidence:
 - A CA is configured on pfSense to issue client certificates.
@@ -150,7 +150,7 @@ Certificate-based authentication evidence:
 
 ---
 
-### V4 — OpenVPN user certificate
+### 4 — OpenVPN user certificate
 
 Client identity/certificate evidence:
 - Shows a user/client certificate created for VPN authentication.
@@ -160,9 +160,9 @@ Client identity/certificate evidence:
 
 ---
 
-# Web Publishing (HAProxy → Nginx) over HTTPS
+## 7 — Web Publishing (HAProxy → Nginx) over HTTPS
 
-### W1 — HAProxy stats (reverse proxy evidence)
+### 1 — HAProxy stats (reverse proxy evidence)
 
 Operational proof of the reverse proxy:
 - Frontend/backend visibility and health checks in HAProxy.
@@ -172,7 +172,7 @@ Operational proof of the reverse proxy:
 
 ---
 
-### W2 — Web server reachable via HTTPS domain (historical evidence)
+### 2 — Web server reachable via HTTPS domain (historical evidence)
 
 Publishing proof from the client side:
 - Browser shows the site reachable via HTTPS using a public domain during the project.
@@ -184,9 +184,9 @@ Publishing proof from the client side:
 
 ---
 
-# VoIP (Asterisk) + NAT (SIP/RTP)
+## 8 — VoIP (Asterisk) + NAT (SIP/RTP)
 
-### P1 — Zoiper ringing (call setup)
+### 1 — Zoiper ringing (call setup)
 
 VoIP call flow validation:
 - Ringing state indicates SIP signaling is reaching the endpoint.
@@ -196,7 +196,7 @@ VoIP call flow validation:
 
 ---
 
-### P2 — Zoiper incoming call
+### 2 — Zoiper incoming call
 
 Additional VoIP validation:
 - Incoming call screen confirms successful SIP negotiation.
@@ -206,7 +206,7 @@ Additional VoIP validation:
 
 ---
 
-### P3 — NAT Port Forward rules (SIP + RTP)
+### 3 — NAT Port Forward rules (SIP + RTP)
 
 pfSense inbound NAT evidence:
 - SIP UDP 5060 forwarded to the Asterisk server.
@@ -216,7 +216,7 @@ pfSense inbound NAT evidence:
 
 ---
 
-### P4 — Outbound NAT with static-port (RTP stability)
+### 4 — Outbound NAT with static-port (RTP stability)
 
 Outbound NAT tuning for VoIP:
 - Static-port helps prevent RTP issues caused by port rewriting.
@@ -226,13 +226,13 @@ Outbound NAT tuning for VoIP:
 
 ---
 
-# IDS (Suricata)
+## 9 — IDS (Suricata)
 
 Suricata is used primarily for IDS-style inspection:
 - Detects suspicious traffic patterns (scans/recon) and generates alerts.
 - Blocking/containment is handled through pfSense policy as needed.
 
-### S1 — Detection example (Nmap-style scan)
+### 1 — Detection example (Nmap-style scan)
 
 Reconnaissance detection evidence:
 - Suricata flags scan-like behavior consistent with Nmap probing.
@@ -242,7 +242,7 @@ Reconnaissance detection evidence:
 
 ---
 
-### S2 — Suricata alerts view
+### 2 — Suricata alerts view
 
 Operational IDS evidence:
 - Shows the alert view with triggered events.
@@ -252,7 +252,7 @@ Operational IDS evidence:
 
 ---
 
-### S3 — Blocked host evidence
+### 3 — Blocked host evidence
 
 Response/containment evidence:
 - Shows a blocked host/IP entry in pfSense context.
@@ -262,9 +262,9 @@ Response/containment evidence:
 
 ---
 
-# Monitoring (Zabbix)
+## 10 — Monitoring (Zabbix)
 
-### M1 — Zabbix dashboard
+### 1 — Zabbix dashboard
 
 Monitoring evidence:
 - Confirms infrastructure/service visibility through Zabbix dashboards.
@@ -274,9 +274,9 @@ Monitoring evidence:
 
 ---
 
-# SIEM (Wazuh)
+## 11 — SIEM (Wazuh)
 
-### Z1 — Wazuh dashboard
+### 1 — Wazuh dashboard
 
 SIEM visibility evidence:
 - Dashboard view showing security monitoring panels.
@@ -286,7 +286,7 @@ SIEM visibility evidence:
 
 ---
 
-### Z2 — Wazuh hosts/agents inventory
+### 2 — Wazuh hosts/agents inventory
 
 Endpoint coverage evidence:
 - Shows hosts/agents reporting to Wazuh.
@@ -296,13 +296,13 @@ Endpoint coverage evidence:
 
 ---
 
-## Artifacts
+## 12 — Artifacts
 
 - Web page served by the internal web server: [`web/index.html`](web/index.html)
 - pfSense configuration export: [`configs/pfSense full config.xml`](configs/pfSense%20full%20config.xml)
 
 ---
 
-## Tech Stack
+## 13 — Tech Stack
 
 Azure • pfSense • OpenVPN • HAProxy • Nginx • Asterisk • Suricata • Wazuh • Zabbix • Windows Server (AD/DNS)
